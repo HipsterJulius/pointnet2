@@ -42,22 +42,29 @@ if not os.path.exists(DUMP_DIR): os.mkdir(DUMP_DIR)
 LOG_FOUT = open(os.path.join(DUMP_DIR, 'log_evaluate.txt'), 'w')
 LOG_FOUT.write(str(FLAGS)+'\n')
 
-NUM_CLASSES = 40
-SHAPE_NAMES = [line.rstrip() for line in \
-    open(os.path.join(ROOT_DIR, 'data/modelnet40_ply_hdf5_2048/shape_names.txt'))] 
+#NUM_CLASSES = 40
+#SHAPE_NAMES = [line.rstrip() for line in open(os.path.join(ROOT_DIR, 'data/modelnet40_ply_hdf5_2048/shape_names.txt'))] 
+NUM_CLASSES = 4
+SHAPE_NAMES = [line.rstrip() for line in open(os.path.join(ROOT_DIR, 'data/custom/shape_names.txt'))]
 
 HOSTNAME = socket.gethostname()
 
 # Shapenet official train/test split
 if FLAGS.normal:
     assert(NUM_POINT<=10000)
-    DATA_PATH = os.path.join(ROOT_DIR, 'data/modelnet40_normal_resampled')
+    #DATA_PATH = os.path.join(ROOT_DIR, 'data/modelnet40_normal_resampled')
+    #TRAIN_DATASET = modelnet_dataset.ModelNetDataset(root=DATA_PATH, npoints=NUM_POINT, split='train', normal_channel=FLAGS.normal, batch_size=BATCH_SIZE)
+    #TEST_DATASET = modelnet_dataset.ModelNetDataset(root=DATA_PATH, npoints=NUM_POINT, split='test', normal_channel=FLAGS.normal, batch_size=BATCH_SIZE)
+    DATA_PATH = os.path.join(ROOT_DIR, 'data/custom')
     TRAIN_DATASET = modelnet_dataset.ModelNetDataset(root=DATA_PATH, npoints=NUM_POINT, split='train', normal_channel=FLAGS.normal, batch_size=BATCH_SIZE)
     TEST_DATASET = modelnet_dataset.ModelNetDataset(root=DATA_PATH, npoints=NUM_POINT, split='test', normal_channel=FLAGS.normal, batch_size=BATCH_SIZE)
 else:
     assert(NUM_POINT<=2048)
-    TRAIN_DATASET = modelnet_h5_dataset.ModelNetH5Dataset(os.path.join(BASE_DIR, 'data/modelnet40_ply_hdf5_2048/train_files.txt'), batch_size=BATCH_SIZE, npoints=NUM_POINT, shuffle=True)
-    TEST_DATASET = modelnet_h5_dataset.ModelNetH5Dataset(os.path.join(BASE_DIR, 'data/modelnet40_ply_hdf5_2048/test_files.txt'), batch_size=BATCH_SIZE, npoints=NUM_POINT, shuffle=False)
+    #TRAIN_DATASET = modelnet_h5_dataset.ModelNetH5Dataset(os.path.join(BASE_DIR, 'data/modelnet40_ply_hdf5_2048/train_files.txt'), batch_size=BATCH_SIZE, npoints=NUM_POINT, shuffle=True)
+    #TEST_DATASET = modelnet_h5_dataset.ModelNetH5Dataset(os.path.join(BASE_DIR, 'data/modelnet40_ply_hdf5_2048/test_files.txt'), batch_size=BATCH_SIZE, npoints=NUM_POINT, shuffle=False)
+    DATA_PATH = os.path.join(ROOT_DIR, 'data/custom')
+    TRAIN_DATASET = modelnet_dataset.ModelNetDataset(root=DATA_PATH, npoints=NUM_POINT, split='train', normal_channel=FLAGS.normal, batch_size=BATCH_SIZE)
+    TEST_DATASET = modelnet_dataset.ModelNetDataset(root=DATA_PATH, npoints=NUM_POINT, split='test', normal_channel=FLAGS.normal, batch_size=BATCH_SIZE)
 
 def log_string(out_str):
     LOG_FOUT.write(out_str+'\n')
@@ -72,7 +79,7 @@ def evaluate(num_votes):
         is_training_pl = tf.placeholder(tf.bool, shape=())
 
         # simple model
-        pred, end_points = MODEL.get_model(pointclouds_pl, is_training_pl)
+        pred, end_points = MODEL.get_model(pointclouds_pl, is_training_pl, num_classes=NUM_CLASSES)
         MODEL.get_loss(pred, labels_pl, end_points)
         losses = tf.get_collection('losses')
         total_loss = tf.add_n(losses, name='total_loss')

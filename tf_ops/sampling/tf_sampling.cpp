@@ -9,6 +9,8 @@
 #include "tensorflow/core/framework/common_shape_fns.h"
 #include <cuda_runtime.h>
 
+#include "tensorflow/core/lib/core/status.h"
+
 using namespace tensorflow;
 
 REGISTER_OP("ProbSample")
