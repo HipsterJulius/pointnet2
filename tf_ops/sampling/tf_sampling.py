@@ -82,7 +82,7 @@ if __name__=='__main__':
         print('pt_sample: ', pt_sample)
         reduced_sample=gather_point(pt_sample,farthest_point_sample(1024,pt_sample))
         print(reduced_sample)
-    with tf.Session('') as sess:
+    with tf.compat.v1.Session('') as sess:
         ret=sess.run(reduced_sample)
     print(ret.shape,ret.dtype)
     import cPickle as pickle

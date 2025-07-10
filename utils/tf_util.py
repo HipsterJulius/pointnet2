@@ -18,7 +18,7 @@ def _variable_on_cpu(name, shape, initializer, use_fp16=False):
   """
   with tf.device("/cpu:0"):
     dtype = tf.float16 if use_fp16 else tf.float32
-    var = tf.get_variable(name, shape, initializer=initializer, dtype=dtype)
+    var =  tf.compat.v1.get_variable(name, shape, initializer=initializer, dtype=dtype)
   return var
 
 def _variable_with_weight_decay(name, shape, stddev, wd, use_xavier=True):
@@ -45,7 +45,7 @@ def _variable_with_weight_decay(name, shape, stddev, wd, use_xavier=True):
   var = _variable_on_cpu(name, shape, initializer)
   if wd is not None:
     weight_decay = tf.multiply(tf.nn.l2_loss(var), wd, name='weight_loss')
-    tf.add_to_collection('losses', weight_decay)
+    tf.compat.v1.add_to_collection('losses', weight_decay)
   return var
 
 
@@ -84,7 +84,7 @@ def conv1d(inputs,
   Returns:
     Variable tensor
   """
-  with tf.variable_scope(scope) as sc:
+  with tf.compat.v1.variable_scope(scope) as sc:
     assert(data_format=='NHWC' or data_format=='NCHW')
     if data_format == 'NHWC':
       num_in_channels = inputs.get_shape()[-1].value
@@ -152,7 +152,7 @@ def conv2d(inputs,
   Returns:
     Variable tensor
   """
-  with tf.variable_scope(scope) as sc:
+  with tf.compat.v1.variable_scope(scope) as sc:
       kernel_h, kernel_w = kernel_size
       assert(data_format=='NHWC' or data_format=='NCHW')
       if data_format == 'NHWC':
@@ -220,7 +220,7 @@ def conv2d_transpose(inputs,
 
   Note: conv2d(conv2d_transpose(a, num_out, ksize, stride), a.shape[-1], ksize, stride) == a
   """
-  with tf.variable_scope(scope) as sc:
+  with tf.compat.v1.variable_scope(scope) as sc:
       kernel_h, kernel_w = kernel_size
       num_in_channels = inputs.get_shape()[-1].value
       kernel_shape = [kernel_h, kernel_w,
@@ -298,7 +298,7 @@ def conv3d(inputs,
   Returns:
     Variable tensor
   """
-  with tf.variable_scope(scope) as sc:
+  with tf.compat.v1.variable_scope(scope) as sc:
     kernel_d, kernel_h, kernel_w = kernel_size
     num_in_channels = inputs.get_shape()[-1].value
     kernel_shape = [kernel_d, kernel_h, kernel_w,
@@ -343,7 +343,7 @@ def fully_connected(inputs,
   Returns:
     Variable tensor of size B x num_outputs.
   """
-  with tf.variable_scope(scope) as sc:
+  with tf.compat.v1.variable_scope(scope) as sc:
     num_input_units = inputs.get_shape()[-1].value
     weights = _variable_with_weight_decay('weights',
                                           shape=[num_input_units, num_outputs],
@@ -378,7 +378,7 @@ def max_pool2d(inputs,
   Returns:
     Variable tensor
   """
-  with tf.variable_scope(scope) as sc:
+  with tf.compat.v1.variable_scope(scope) as sc:
     kernel_h, kernel_w = kernel_size
     stride_h, stride_w = stride
     outputs = tf.nn.max_pool(inputs,
@@ -403,7 +403,7 @@ def avg_pool2d(inputs,
   Returns:
     Variable tensor
   """
-  with tf.variable_scope(scope) as sc:
+  with tf.compat.v1.variable_scope(scope) as sc:
     kernel_h, kernel_w = kernel_size
     stride_h, stride_w = stride
     outputs = tf.nn.avg_pool(inputs,
@@ -429,7 +429,7 @@ def max_pool3d(inputs,
   Returns:
     Variable tensor
   """
-  with tf.variable_scope(scope) as sc:
+  with tf.compat.v1.variable_scope(scope) as sc:
     kernel_d, kernel_h, kernel_w = kernel_size
     stride_d, stride_h, stride_w = stride
     outputs = tf.nn.max_pool3d(inputs,
@@ -454,7 +454,7 @@ def avg_pool3d(inputs,
   Returns:
     Variable tensor
   """
-  with tf.variable_scope(scope) as sc:
+  with tf.compat.v1.variable_scope(scope) as sc:
     kernel_d, kernel_h, kernel_w = kernel_size
     stride_d, stride_h, stride_w = stride
     outputs = tf.nn.avg_pool3d(inputs,
@@ -479,7 +479,7 @@ def batch_norm_template_unused(inputs, is_training, scope, moments_dims, bn_deca
   Return:
       normed:        batch-normalized maps
   """
-  with tf.variable_scope(scope) as sc:
+  with tf.compat.v1.variable_scope(scope) as sc:
     num_channels = inputs.get_shape()[-1].value
     beta = _variable_on_cpu(name='beta',shape=[num_channels],
                             initializer=tf.constant_initializer(0))
@@ -491,7 +491,7 @@ def batch_norm_template_unused(inputs, is_training, scope, moments_dims, bn_deca
     # Operator that maintains moving averages of variables.
     # Need to set reuse=False, otherwise if reuse, will see moments_1/mean/ExponentialMovingAverage/ does not exist
     # https://github.com/shekkizh/WassersteinGAN.tensorflow/issues/3
-    with tf.variable_scope(tf.get_variable_scope(), reuse=False):
+    with tf.compat.v1.variable_scope( tf.compat.v1.get_variable_scope(), reuse=False):
         ema_apply_op = tf.cond(is_training,
                                lambda: ema.apply([batch_mean, batch_var]),
                                lambda: tf.no_op())
@@ -608,7 +608,7 @@ def dropout(inputs,
   Returns:
     tensor variable
   """
-  with tf.variable_scope(scope) as sc:
+  with tf.compat.v1.variable_scope(scope) as sc:
     outputs = tf.cond(is_training,
                       lambda: tf.nn.dropout(inputs, keep_prob, noise_shape),
                       lambda: inputs)

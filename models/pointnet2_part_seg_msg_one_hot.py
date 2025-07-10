@@ -9,9 +9,9 @@ import tf_util
 from pointnet_util import pointnet_sa_module, pointnet_sa_module_msg, pointnet_fp_module
 
 def placeholder_inputs(batch_size, num_point):
-    pointclouds_pl = tf.placeholder(tf.float32, shape=(batch_size, num_point, 6))
-    labels_pl = tf.placeholder(tf.int32, shape=(batch_size, num_point))
-    cls_labels_pl = tf.placeholder(tf.int32, shape=(batch_size))
+    pointclouds_pl = tf.compat.v1.placeholder(tf.float32, shape=(batch_size, num_point, 6))
+    labels_pl = tf.compat.v1.placeholder(tf.int32, shape=(batch_size, num_point))
+    cls_labels_pl = tf.compat.v1.placeholder(tf.int32, shape=(batch_size))
     return pointclouds_pl, labels_pl, cls_labels_pl
 
 NUM_CATEGORIES = 16
@@ -52,8 +52,8 @@ def get_loss(pred, label):
         label: BxN, """
     loss = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=pred, labels=label)
     classify_loss = tf.reduce_mean(loss)
-    tf.summary.scalar('classify loss', classify_loss)
-    tf.add_to_collection('losses', classify_loss)
+    tf.compat.v1.summary.scalar('classify loss', classify_loss)
+    tf.compat.v1.add_to_collection('losses', classify_loss)
     return classify_loss
 
 

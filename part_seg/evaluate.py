@@ -59,19 +59,19 @@ def evaluate():
     with tf.Graph().as_default():
         with tf.device('/gpu:'+str(GPU_INDEX)):
             pointclouds_pl, labels_pl = MODEL.placeholder_inputs(BATCH_SIZE, NUM_POINT)
-            is_training_pl = tf.placeholder(tf.bool, shape=())
+            is_training_pl = tf.compat.v1.placeholder(tf.bool, shape=())
             print(is_training_pl)
             
             print("--- Get model and loss")
             pred, end_points = MODEL.get_model(pointclouds_pl, is_training_pl)
             loss = MODEL.get_loss(pred, labels_pl)
-            saver = tf.train.Saver()
+            saver = tf.compat.v1.train.Saver()
         
         # Create a session
-        config = tf.ConfigProto()
+        config = tf.compat.v1.ConfigProto()
         config.gpu_options.allow_growth = True
         config.allow_soft_placement = True
-        sess = tf.Session(config=config)
+        sess = tf.compat.v1.Session(config=config)
         # Restore variables from disk.
         saver.restore(sess, MODEL_PATH)
         ops = {'pointclouds_pl': pointclouds_pl,

@@ -150,19 +150,19 @@ def train():
     with tf.Graph().as_default():
         with tf.device('/cpu:0'):
             pointclouds_pl, labels_pl = MODEL.placeholder_inputs(BATCH_SIZE, NUM_POINT)
-            is_training_pl = tf.placeholder(tf.bool, shape=())
+            is_training_pl = tf.compat.v1.placeholder(tf.bool, shape=())
             
             # Note the global_step=batch parameter to minimize. 
             # That tells the optimizer to helpfully increment the 'batch' parameter
             # for you every time it trains.
-            batch = tf.get_variable('batch', [],
+            batch =  tf.compat.v1.get_variable('batch', [],
                 initializer=tf.constant_initializer(0), trainable=False)
             bn_decay = get_bn_decay(batch)
-            tf.summary.scalar('bn_decay', bn_decay)
+            tf.compat.v1.summary.scalar('bn_decay', bn_decay)
 
             # Set learning rate and optimizer
             learning_rate = get_learning_rate(batch)
-            tf.summary.scalar('learning_rate', learning_rate)
+            tf.compat.v1.summary.scalar('learning_rate', learning_rate)
             if OPTIMIZER == 'momentum':
                 optimizer = tf.train.MomentumOptimizer(learning_rate, momentum=MOMENTUM)
             elif OPTIMIZER == 'adam':
@@ -179,7 +179,7 @@ def train():
             pred_gpu = []
             total_loss_gpu = []
             for i in range(NUM_GPUS):
-                with tf.variable_scope(tf.get_variable_scope(), reuse=True):
+                with tf.compat.v1.variable_scope( tf.compat.v1.get_variable_scope(), reuse=True):
                     with tf.device('/gpu:%d'%(i)), tf.name_scope('gpu_%d'%(i)) as scope:
                         # Evenly split input data to each GPU
                         pc_batch = tf.slice(pointclouds_pl,
@@ -191,10 +191,10 @@ def train():
                             is_training=is_training_pl, bn_decay=bn_decay)
 
                         MODEL.get_loss(pred, label_batch, end_points)
-                        losses = tf.get_collection('losses', scope)
+                        losses = tf.compat.v1.get_collection('losses', scope)
                         total_loss = tf.add_n(losses, name='total_loss')
                         for l in losses + [total_loss]:
-                            tf.summary.scalar(l.op.name, l)
+                            tf.compat.v1.summary.scalar(l.op.name, l)
 
                         grads = optimizer.compute_gradients(total_loss)
                         tower_grads.append(grads)
@@ -212,22 +212,22 @@ def train():
 
             correct = tf.equal(tf.argmax(pred, 1), tf.to_int64(labels_pl))
             accuracy = tf.reduce_sum(tf.cast(correct, tf.float32)) / float(BATCH_SIZE)
-            tf.summary.scalar('accuracy', accuracy)
+            tf.compat.v1.summary.scalar('accuracy', accuracy)
 
         # Add ops to save and restore all the variables.
-        saver = tf.train.Saver()
+        saver = tf.compat.v1.train.Saver()
         
         # Create a session
-        config = tf.ConfigProto()
+        config = tf.compat.v1.ConfigProto()
         config.gpu_options.allow_growth = True
         config.allow_soft_placement = True
         config.log_device_placement = False
-        sess = tf.Session(config=config)
+        sess = tf.compat.v1.Session(config=config)
 
         # Add summary writers
-        merged = tf.summary.merge_all()
-        train_writer = tf.summary.FileWriter(os.path.join(LOG_DIR, 'train'), sess.graph)
-        test_writer = tf.summary.FileWriter(os.path.join(LOG_DIR, 'test'), sess.graph)
+        merged = tf.compat.v1.summary.merge_all()
+        train_writer = tf.compat.v1.summary.FileWriter(os.path.join(LOG_DIR, 'train'), sess.graph)
+        test_writer = tf.compat.v1.summary.FileWriter(os.path.join(LOG_DIR, 'test'), sess.graph)
 
         # Init variables
         init = tf.global_variables_initializer()

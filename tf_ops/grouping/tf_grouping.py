@@ -94,7 +94,7 @@ if __name__=='__main__':
             grouped_points = group_point(points, idx)
             #grouped_points_grad = tf.ones_like(grouped_points)
             #points_grad = tf.gradients(grouped_points, points, grouped_points_grad)
-    with tf.Session('') as sess:
+    with tf.compat.v1.Session('') as sess:
         now = time.time() 
         for _ in range(100):
             ret = sess.run(grouped_points)
